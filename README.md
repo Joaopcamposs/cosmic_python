@@ -1,76 +1,49 @@
-# Example application code for the "Architecture Patterns with Python" book
+# Cosmic Python — Architecture Patterns with Python
 
-## Chapters
+Implementação dos padrões de arquitetura do livro **"Architecture Patterns with Python"**
+usando **FastAPI**, **SQLAlchemy 2.0** e **Python 3.11**.
 
-Each chapter has its own branch which contains all the commits for that chapter,
-so it has the state that corresponds to the _end_ of that chapter.
-If you want to try and code along with a chapter,
-you'll want to check out the branch for the previous chapter.
+## Stack
 
-https://github.com/cosmicpython/code/branches/all
+- **Python 3.11** com tipagem completa e docstrings
+- **FastAPI** + **Pydantic v2** para a API REST
+- **SQLAlchemy 2.0** com mapeamento imperativo (`registry.map_imperatively`)
+- **PostgreSQL 16** para persistência
+- **Redis 7** para Pub/Sub de eventos
+- **Docker Compose** para orquestração de serviços
+- **pytest** para testes unitários, integração e e2e
 
+## Requisitos
 
-## Exercises
+- Docker com Docker Compose v2
+- (Opcional) Python 3.11 local com `uv` para desenvolvimento
 
-Branches for the exercises follow the convention `{chapter_name}_exercise`,
-eg https://github.com/cosmicpython/code/tree/chapter_04_service_layer_exercise
-
-
-## Requirements
-
-* docker with docker-compose
-* for chapters 1 and 2, and optionally for the rest: a local python3.8 virtualenv
-
-
-## Building the containers
-
-_(this is only required from chapter 3 onwards)_
+## Build e execução
 
 ```sh
 make build
 make up
-# or
-make all # builds, brings containers up, runs tests
+# ou
+make all  # build, up, test
 ```
 
-## Creating a local virtualenv (optional)
+## Desenvolvimento local (opcional)
 
 ```sh
-python3.8 -m venv .venv && source .venv/bin/activate # or however you like to create virtualenvs
-
-# for chapter 1
-pip install pytest 
-
-# for chapter 2
-pip install pytest sqlalchemy
-
-# for chapter 4+5
-pip install -r requirements.txt
-
-# for chapter 6+
-pip install -r requirements.txt
-pip install -e src/
+uv sync --all-extras
+PYTHONPATH=src .venv/bin/python -m pytest tests/unit
 ```
 
-<!-- TODO: use a make pipinstall command -->
-
-
-## Running the tests
+## Testes
 
 ```sh
-make test
-# or, to run individual test types
-make unit-tests
-make integration-tests
-make e2e-tests
-# or, if you have a local virtualenv
-make up
-pytest tests/unit
-pytest tests/integration
-pytest tests/e2e
+make test               # todos os testes (via Docker)
+make unit-tests         # apenas unitários
+make integration-tests  # apenas integração
+make e2e-tests          # apenas e2e
 ```
 
 ## Makefile
 
-There are more useful commands in the makefile, have a look and try them out.
+Veja o `Makefile` para mais comandos úteis.
 

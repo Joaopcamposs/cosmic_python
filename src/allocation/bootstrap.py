@@ -1,5 +1,8 @@
+"""Bootstrap da aplicação: monta o barramento de mensagens com injeção de dependências."""
+
 import inspect
-from typing import Callable
+from collections.abc import Callable
+
 from allocation.adapters import orm, redis_eventpublisher
 from allocation.adapters.notifications import (
     AbstractNotifications,
@@ -11,16 +14,31 @@ from allocation.service_layer import handlers, messagebus, unit_of_work
 def bootstrap(
     start_orm: bool = True,
     uow: unit_of_work.AbstractUnitOfWork = unit_of_work.SqlAlchemyUnitOfWork(),
-    notifications: AbstractNotifications = None,
-    publish: Callable = redis_eventpublisher.publish,
+    notifications: AbstractNotifications | None = None,
+    publish: Callable[..., None] = redis_eventpublisher.publish,
 ) -> messagebus.MessageBus:
+    """Configura e retorna o barramento de mensagens com todas as dependências injetadas.
+
+    Args:
+        start_orm: Se True, inicializa os mappers do ORM.
+        uow: Unit of Work a ser utilizado.
+        notifications: Adaptador de notificações.
+        publish: Função de publicação de eventos.
+
+    Returns:
+        Instância configurada do MessageBus.
+    """
     if notifications is None:
         notifications = EmailNotifications()
 
     if start_orm:
         orm.start_mappers()
 
-    dependencies = {"uow": uow, "notifications": notifications, "publish": publish}
+    dependencies: dict[str, object] = {
+        "uow": uow,
+        "notifications": notifications,
+        "publish": publish,
+    }
     injected_event_handlers = {
         event_type: [
             inject_dependencies(handler, dependencies) for handler in event_handlers
@@ -39,7 +57,18 @@ def bootstrap(
     )
 
 
-def inject_dependencies(handler, dependencies):
+def inject_dependencies(
+    handler: Callable[..., None], dependencies: dict[str, object]
+) -> Callable[..., None]:
+    """Injeta dependências em um handler baseado na assinatura da função.
+
+    Args:
+        handler: Função handler de comando ou evento.
+        dependencies: Dicionário de dependências disponíveis.
+
+    Returns:
+        Função wrapper com dependências injetadas.
+    """
     params = inspect.signature(handler).parameters
     deps = {
         name: dependency for name, dependency in dependencies.items() if name in params

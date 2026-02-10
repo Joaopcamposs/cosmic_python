@@ -1,7 +1,10 @@
+"""Configurações de infraestrutura para o serviço de alocação."""
+
 import os
 
 
-def get_postgres_uri():
+def get_postgres_uri() -> str:
+    """Retorna a URI de conexão com o PostgreSQL."""
     host = os.environ.get("DB_HOST", "localhost")
     port = 54321 if host == "localhost" else 5432
     password = os.environ.get("DB_PASSWORD", "abc123")
@@ -9,19 +12,22 @@ def get_postgres_uri():
     return f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
 
 
-def get_api_url():
+def get_api_url() -> str:
+    """Retorna a URL base da API."""
     host = os.environ.get("API_HOST", "localhost")
-    port = 5005 if host == "localhost" else 80
+    port = 8000 if host == "localhost" else 80
     return f"http://{host}:{port}"
 
 
-def get_redis_host_and_port():
+def get_redis_host_and_port() -> dict[str, str | int]:
+    """Retorna host e porta do Redis."""
     host = os.environ.get("REDIS_HOST", "localhost")
     port = 63791 if host == "localhost" else 6379
     return dict(host=host, port=port)
 
 
-def get_email_host_and_port():
+def get_email_host_and_port() -> dict[str, str | int]:
+    """Retorna host e portas do servidor de e-mail."""
     host = os.environ.get("EMAIL_HOST", "localhost")
     port = 11025 if host == "localhost" else 1025
     http_port = 18025 if host == "localhost" else 8025

@@ -1,18 +1,31 @@
+"""Modelos de domínio para o contexto de alocação de estoque."""
+
 from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import date
-from typing import Optional, List
+
 from . import events
 
 
 class Product:
-    def __init__(self, sku: str, batches: List[Batch], version_number: int = 0):
+    """Agregado raiz que gerencia lotes e alocações de um SKU."""
+
+    def __init__(self, sku: str, batches: list[Batch], version_number: int = 0) -> None:
         self.sku = sku
         self.batches = batches
         self.version_number = version_number
-        self.events = []  # type: List[events.Event]
+        self.events: list[events.Event] = []
 
-    def allocate(self, line: OrderLine) -> str:
+    def allocate(self, line: OrderLine) -> str | None:
+        """Aloca uma linha de pedido ao lote mais adequado disponível.
+
+        Args:
+            line: Linha de pedido a ser alocada.
+
+        Returns:
+            Referência do lote alocado ou None se sem estoque.
+        """
         try:
             batch = next(b for b in sorted(self.batches) if b.can_allocate(line))
             batch.allocate(line)
@@ -30,7 +43,13 @@ class Product:
             self.events.append(events.OutOfStock(line.sku))
             return None
 
-    def change_batch_quantity(self, ref: str, qty: int):
+    def change_batch_quantity(self, ref: str, qty: int) -> None:
+        """Altera a quantidade de um lote e desaloca pedidos se necessário.
+
+        Args:
+            ref: Referência do lote.
+            qty: Nova quantidade do lote.
+        """
         batch = next(b for b in self.batches if b.reference == ref)
         batch._purchased_quantity = qty
         while batch.available_quantity < 0:
@@ -40,51 +59,60 @@ class Product:
 
 @dataclass(unsafe_hash=True)
 class OrderLine:
+    """Linha de pedido representando um item solicitado por um cliente."""
+
     orderid: str
     sku: str
     qty: int
 
 
 class Batch:
-    def __init__(self, ref: str, sku: str, qty: int, eta: Optional[date]):
+    """Lote de produtos disponível para alocação."""
+
+    def __init__(self, ref: str, sku: str, qty: int, eta: date | None) -> None:
         self.reference = ref
         self.sku = sku
         self.eta = eta
         self._purchased_quantity = qty
-        self._allocations = set()  # type: Set[OrderLine]
+        self._allocations: set[OrderLine] = set()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Batch {self.reference}>"
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Batch):
             return False
         return other.reference == self.reference
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.reference)
 
-    def __gt__(self, other):
+    def __gt__(self, other: Batch) -> bool:
         if self.eta is None:
             return False
         if other.eta is None:
             return True
         return self.eta > other.eta
 
-    def allocate(self, line: OrderLine):
+    def allocate(self, line: OrderLine) -> None:
+        """Aloca uma linha de pedido a este lote."""
         if self.can_allocate(line):
             self._allocations.add(line)
 
     def deallocate_one(self) -> OrderLine:
+        """Remove e retorna uma alocação arbitrária deste lote."""
         return self._allocations.pop()
 
     @property
     def allocated_quantity(self) -> int:
+        """Quantidade total alocada neste lote."""
         return sum(line.qty for line in self._allocations)
 
     @property
     def available_quantity(self) -> int:
+        """Quantidade disponível para alocação neste lote."""
         return self._purchased_quantity - self.allocated_quantity
 
     def can_allocate(self, line: OrderLine) -> bool:
+        """Verifica se este lote pode alocar a linha de pedido."""
         return self.sku == line.sku and self.available_quantity >= line.qty

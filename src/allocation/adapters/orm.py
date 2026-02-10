@@ -1,21 +1,24 @@
+"""Mapeamento ORM imperativo usando SQLAlchemy 2.0 registry."""
+
 import logging
+
 from sqlalchemy import (
-    Table,
-    MetaData,
     Column,
-    Integer,
-    String,
     Date,
     ForeignKey,
+    Integer,
+    String,
+    Table,
     event,
 )
-from sqlalchemy.orm import mapper, relationship
+from sqlalchemy.orm import registry, relationship
 
 from allocation.domain import model
 
 logger = logging.getLogger(__name__)
 
-metadata = MetaData()
+mapper_registry = registry()
+metadata = mapper_registry.metadata
 
 order_lines = Table(
     "order_lines",
@@ -60,10 +63,11 @@ allocations_view = Table(
 )
 
 
-def start_mappers():
+def start_mappers() -> None:
+    """Inicializa o mapeamento imperativo entre modelos de domínio e tabelas."""
     logger.info("Starting mappers")
-    lines_mapper = mapper(model.OrderLine, order_lines)
-    batches_mapper = mapper(
+    lines_mapper = mapper_registry.map_imperatively(model.OrderLine, order_lines)
+    batches_mapper = mapper_registry.map_imperatively(
         model.Batch,
         batches,
         properties={
@@ -74,7 +78,7 @@ def start_mappers():
             )
         },
     )
-    mapper(
+    mapper_registry.map_imperatively(
         model.Product,
         products,
         properties={"batches": relationship(batches_mapper)},
@@ -82,5 +86,6 @@ def start_mappers():
 
 
 @event.listens_for(model.Product, "load")
-def receive_load(product, _):
+def receive_load(product: model.Product, _: object) -> None:
+    """Inicializa a lista de eventos ao carregar um Product do banco."""
     product.events = []

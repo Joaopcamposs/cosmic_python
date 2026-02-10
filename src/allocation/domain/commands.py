@@ -1,15 +1,17 @@
-# pylint: disable=too-few-public-methods
-from datetime import date
-from typing import Optional
+"""Comandos do domínio para o contexto de alocação."""
+
 from dataclasses import dataclass
+from datetime import date
 
 
 class Command:
-    pass
+    """Classe base para todos os comandos de domínio."""
 
 
 @dataclass
 class Allocate(Command):
+    """Comando para alocar uma linha de pedido a um lote disponível."""
+
     orderid: str
     sku: str
     qty: int
@@ -17,13 +19,17 @@ class Allocate(Command):
 
 @dataclass
 class CreateBatch(Command):
+    """Comando para criar um novo lote de produtos."""
+
     ref: str
     sku: str
     qty: int
-    eta: Optional[date] = None
+    eta: date | None = None
 
 
 @dataclass
 class ChangeBatchQuantity(Command):
+    """Comando para alterar a quantidade de um lote existente."""
+
     ref: str
     qty: int
