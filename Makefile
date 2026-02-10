@@ -28,5 +28,5 @@ e2e-tests: up
 logs:
 	docker-compose logs --tail=25 api redis_pubsub
 
-black:
-	black -l 86 $$(find * -name '*.py')
+ruff:
+	ruff format . && ruff check . --fix

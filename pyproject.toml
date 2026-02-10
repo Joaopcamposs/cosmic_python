@@ -1,0 +1,19 @@
+[project]
+name = "cosmic-python"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[all]>=0.125.0",
+    "flask>=3.1.2",
+    "mypy>=1.19.1",
+    "psycopg2-binary>=2.9.11",
+    "pytest>=9.0.2",
+    "pytest-icdiff>=0.9",
+    "reds>=0.1.9",
+    "requests>=2.32.5",
+    "ruff>=0.14.10",
+    "sqlalchemy>=2.0.45",
+    "tenacity>=9.1.2",
+]

@@ -2,7 +2,6 @@
 from __future__ import annotations
 from collections import defaultdict
 from datetime import date
-from typing import Dict, List
 import pytest
 from allocation import bootstrap
 from allocation.domain import commands
@@ -69,9 +68,7 @@ class TestAddBatch:
         bus = bootstrap_test_app()
         bus.handle(commands.CreateBatch("b1", "GARISH-RUG", 100, None))
         bus.handle(commands.CreateBatch("b2", "GARISH-RUG", 99, None))
-        assert "b2" in [
-            b.reference for b in bus.uow.products.get("GARISH-RUG").batches
-        ]
+        assert "b2" in [b.reference for b in bus.uow.products.get("GARISH-RUG").batches]
 
 
 class TestAllocate:
@@ -106,7 +103,7 @@ class TestAllocate:
         bus.handle(commands.CreateBatch("b1", "POPULAR-CURTAINS", 9, None))
         bus.handle(commands.Allocate("o1", "POPULAR-CURTAINS", 10))
         assert fake_notifs.sent["stock@made.com"] == [
-            f"Out of stock for POPULAR-CURTAINS",
+            "Out of stock for POPULAR-CURTAINS",
         ]
 
 

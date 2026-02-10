@@ -1,7 +1,7 @@
 # pylint: disable=unused-argument
 from __future__ import annotations
 from dataclasses import asdict
-from typing import List, Dict, Callable, Type, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 from allocation.domain import commands, events, model
 from allocation.domain.model import OrderLine
 

@@ -1,5 +1,4 @@
 import abc
-from typing import Set
 from allocation.adapters import orm
 from allocation.domain import model
 
